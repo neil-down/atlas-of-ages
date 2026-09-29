@@ -1,5 +1,7 @@
 # Atlas of Ages — A Walkable Bible History
 
+**Play it: https://neil-down.github.io/atlas-of-ages/** (also local: `npm run serve` → http://localhost:8124)
+
 An explorable, animated, educational adventure built from scratch: walk the Garden,
 cross Egypt, sail Galilee. Talk to people, gather relics, fill your field journal,
 and unseal each era by ordering its events on the timeline.
