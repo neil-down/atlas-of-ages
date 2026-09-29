@@ -1,0 +1,24 @@
+# Atlas of Ages — A Walkable Bible History
+
+An explorable, animated, educational adventure built from scratch: walk the Garden,
+cross Egypt, sail Galilee. Talk to people, gather relics, fill your field journal,
+and unseal each era by ordering its events on the timeline.
+
+## Play
+
+- `npm run serve` → http://localhost:8124 (static files, no build step)
+- Move: **WASD / arrows**, click/tap to walk there, touch joystick on mobile
+- Interact: **E** (talk, gather, unseal portals) · Journal/codex: **J** · Sound: **M**
+
+## Design (from research)
+
+- **Explore first**: an open map you can walk anywhere, like Oregon Trail / Poptropica islands
+- **Clear quest motivation** (Filament/MIT): every chore serves a story — no fetch-for-fetch
+- **Fail safely, retry freely**: timeline trials give hints, never punish (growth mindset)
+- **Learn by doing**: relics unlock real codex facts; ordering events teaches chronology (Chronicle-style)
+- **Free time travel** once an era is unsealed; progress autosaves + persists
+
+## Verify
+
+- `npm run validate` — map/content gate (rectangular maps, known tiles, in-bounds spawns, quest references, relic counts, 4-event trials)
+- `npm run smoke` — headless playthrough: title → dialogue → movement → journal → quest accept → trial solve → portal travel, zero console errors (needs the `playwright` package available via NODE_PATH)

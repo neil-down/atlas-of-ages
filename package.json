@@ -1,0 +1,10 @@
+{
+  "name": "atlas-of-ages",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "validate": "node scripts/validate.mjs",
+    "smoke": "node scripts/smoke.cjs",
+    "serve": "node scripts/serve.cjs"
+  }
+}

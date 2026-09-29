@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Atlas of Ages — A Walkable Bible History</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="game" width="960" height="600"></canvas>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div id="quest-tracker"><span id="qt-name"></span><span id="qt-step"></span></div>
+    <div id="stats"><span id="st-level">Lv 1</span><span id="st-hearts">❤️❤️❤️</span><span id="st-light">🕯️ 0</span><span id="st-relics">🏺 0</span></div>
+    <div id="era-banner"></div>
+  </div>
+
+  <!-- Timeline bar -->
+  <div id="timeline" class="hidden"></div>
+
+  <!-- Touch controls -->
+  <div id="touch" class="hidden">
+    <div id="stick"><div id="nub"></div></div>
+    <button id="btn-act" aria-label="Interact">E</button>
+  </div>
+
+  <!-- Dialogue -->
+  <div id="dialogue" class="hidden">
+    <div id="dlg-head"><span id="dlg-emoji"></span><b id="dlg-name"></b></div>
+    <p id="dlg-text"></p>
+    <div id="dlg-hint">E / tap ▸</div>
+  </div>
+
+  <!-- Journal / Codex -->
+  <div id="journal" class="hidden">
+    <div class="panel-card">
+      <div class="panel-head"><span>📖 Field Journal</span><button data-close="journal" aria-label="Close">✕</button></div>
+      <div class="panel-tabs"><button data-tab="quests" class="on">Quests</button><button data-tab="codex">Codex</button></div>
+      <div id="journal-body"></div>
+    </div>
+  </div>
+
+  <!-- Timeline trial -->
+  <div id="trial" class="hidden">
+    <div class="panel-card">
+      <div class="panel-head"><span id="trial-title">⏳ Order the Ages</span></div>
+      <p id="trial-sub">Tap the events in the order they happened — earliest first.</p>
+      <div id="trial-slots"></div>
+      <div id="trial-cards"></div>
+      <div id="trial-msg"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="hidden"></div>
+
+  <!-- Title screen -->
+  <div id="title">
+    <div class="title-card">
+      <div class="title-kicker">A walkable history of the Bible</div>
+      <h1>Atlas of Ages</h1>
+      <p>Walk the Garden, cross Egypt, sail Galilee.<br>Talk, gather, unseal time itself.</p>
+      <button id="btn-start">▶ Begin the Expedition</button>
+      <button id="btn-continue" class="hidden">⤺ Continue (save found)</button>
+      <div class="title-controls">Move <b>WASD / arrows</b> · Interact <b>E</b> · Journal <b>J</b> · touch supported</div>
+    </div>
+  </div>
+
+  <!-- Victory -->
+  <div id="victory" class="hidden">
+    <div class="title-card">
+      <div class="title-kicker">The Church is born</div>
+      <h1>☀️ Dawn of a New Age</h1>
+      <p id="victory-stats"></p>
+      <button id="btn-roam">Keep exploring</button>
+    </div>
+  </div>
+</div>
+<script src="js/content.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
