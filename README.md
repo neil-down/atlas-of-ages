@@ -49,3 +49,8 @@ on the timeline.
 
 - `npm run validate` — map/content gate (rectangular maps, known tiles, in-bounds spawns, quest references, relic counts, 4-event trials)
 - `npm run smoke` — headless playthrough: title → dialogue → movement → journal → quest accept → trial solve → portal travel, zero console errors (needs the `playwright` package available via NODE_PATH)
+
+## Performance
+
+- Pre-rendered static world layers + cached gradients/vignette; live pass draws only animated tiles, actors, particles
+- Minimap terrain cached, dots at 5 Hz; adaptive quality sheds load under sustained &lt;45 fps and restores above 55 (see live readout in Menu → Performance)

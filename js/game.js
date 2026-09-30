@@ -882,7 +882,8 @@
     }
   };
 
-  /* ---------- minimap ---------- */
+  /* ---------- minimap (cached terrain, 5Hz dots) ---------- */
+  let MM_TERRAIN = null, MM_ERA = null, MM_LAST = 0;
   function drawMinimap() {
     try {
       const mm = $('minimap');
@@ -891,19 +892,32 @@
       if (!g) return;
       const e = era();
       const mw = e.map[0].length, mh = e.map.length;
+      if (MM_ERA !== e.id || !MM_TERRAIN) {
+        MM_TERRAIN = document.createElement('canvas');
+        MM_TERRAIN.width = 148;
+        MM_TERRAIN.height = 110;
+        const t2 = MM_TERRAIN.getContext('2d');
+        const sx = 148 / mw, sy = 110 / mh;
+        for (let y = 0; y < mh; y++) {
+          for (let x = 0; x < mw; x++) {
+            const ch = e.map[y][x];
+            if (ch === '~') t2.fillStyle = '#2a6f97';
+            else if (ch === '#' || ch === 'T' || ch === 'P') t2.fillStyle = 'rgba(255,255,255,0.16)';
+            else if (ch === 'H' || ch === 'N') t2.fillStyle = 'rgba(255,215,130,0.55)';
+            else if (ch === 'o') t2.fillStyle = '#c4b5fd';
+            else continue;
+            t2.fillRect(x * sx, y * sy, Math.ceil(sx), Math.ceil(sy));
+          }
+        }
+        MM_ERA = e.id;
+        MM_LAST = 0;
+      }
+      const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : 0;
+      if (now - MM_LAST < 200) return;
+      MM_LAST = now;
       const sx = 148 / mw, sy = 110 / mh;
       g.clearRect(0, 0, 148, 110);
-      for (let y = 0; y < mh; y++) {
-        for (let x = 0; x < mw; x++) {
-          const ch = e.map[y][x];
-          if (ch === '~') g.fillStyle = '#2a6f97';
-          else if (ch === '#' || ch === 'T' || ch === 'P') g.fillStyle = 'rgba(255,255,255,0.16)';
-          else if (ch === 'H' || ch === 'N') g.fillStyle = 'rgba(255,215,130,0.55)';
-          else if (ch === 'o') g.fillStyle = '#c4b5fd';
-          else continue;
-          g.fillRect(x * sx, y * sy, Math.ceil(sx), Math.ceil(sy));
-        }
-      }
+      g.drawImage(MM_TERRAIN, 0, 0);
       const dot = (wx, wy, c, r) => {
         g.fillStyle = c;
         g.beginPath();
@@ -941,7 +955,7 @@
       g.moveTo(5, 0); g.lineTo(-3, -3.5); g.lineTo(-3, 3.5);
       g.closePath(); g.fill();
       g.restore();
-    } catch (e) {}
+    } catch (e2) {}
   }
 
   /* ---------- menu ---------- */
@@ -1010,21 +1024,34 @@
         engine.drawBadge(nx, ny, n.emoji, null);
       }
       engine.drawProps(ae, acam);
-      const vg = ctx.createRadialGradient(480, 300, 260, 480, 300, 640);
-      vg.addColorStop(0, 'rgba(0,0,0,0)');
-      vg.addColorStop(1, 'rgba(0,0,0,0.55)');
-      ctx.fillStyle = vg;
-      ctx.fillRect(0, 0, 960, 600);
+      engine.vignette(960, 600);
     } catch (e) {}
   }
   /* ---------- main loop ---------- */
   let last = 0, cam = { x: 0, y: 0 }, autosave = 0;
+  let FPS_EMA = 60, LOW_T = 0, HIGH_T = 0;
   function frame(now) {
   applySettings();
+  setInterval(() => {
+    try {
+      if ($('menu').classList.contains('hidden')) return;
+      const f = $('set-fps');
+      if (f) f.textContent = Math.round(FPS_EMA) + ' fps · ' + (engine.lowQ ? 'balanced' : 'full');
+    } catch (e) {}
+  }, 500);
   requestAnimationFrame(frame);
-    const dt = Math.min(0.05, (now - last) / 1000 || 0.016);
+    const rawDt = (now - last) / 1000 || 0.016;
+    const dt = Math.min(0.05, rawDt);
     last = now;
     engine.t += dt;
+    // adaptive quality: sustained <45fps sheds load, >55fps restores it
+    if (rawDt > 0) {
+      FPS_EMA = FPS_EMA * 0.95 + (1 / Math.min(0.25, rawDt)) * 0.05;
+      if (FPS_EMA < 45) { LOW_T += dt; HIGH_T = 0; } else if (FPS_EMA > 55) { HIGH_T += dt; LOW_T = 0; }
+      else { LOW_T = 0; HIGH_T = 0; }
+      if (LOW_T > 2 && !engine.lowQ) { engine.lowQ = true; LOW_T = 0; }
+      if (HIGH_T > 5 && engine.lowQ) { engine.lowQ = false; HIGH_T = 0; }
+    }
     if (!S.started) { attractFrame(); return; }
     const e = era();
     const uiBusy = dlg.open || !$('journal').classList.contains('hidden') || !$('trial').classList.contains('hidden') || !$('scroll').classList.contains('hidden');
@@ -1170,12 +1197,7 @@
     engine.stepParticles(dt);
     engine.drawParticles(cam);
     drawMinimap();
-    // vignette
-    const vg = ctx.createRadialGradient(480, 300, 260, 480, 300, 640);
-    vg.addColorStop(0, 'rgba(0,0,0,0)');
-    vg.addColorStop(1, 'rgba(0,0,0,0.4)');
-    ctx.fillStyle = vg;
-    ctx.fillRect(0, 0, 960, 600);
+    engine.vignette(960, 600);
 
     autosave += dt;
     if (autosave > 10) { autosave = 0; if (S.started) save(); }
@@ -1239,6 +1261,7 @@
   window.AtlasGame = {
     state: () => S, engine, interact, openTrial, SFX,
     settings: () => SET,
+    perf: () => ({ fps: Math.round(FPS_EMA), lowQ: !!engine.lowQ }),
     foes: () => FOES,
     targetInfo() {
       const t = objectiveTarget();

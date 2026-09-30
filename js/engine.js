@@ -92,7 +92,7 @@
           c: colors[(Math.random() * colors.length) | 0]
         });
       }
-      if (this.particles.length > 300) this.particles.splice(0, this.particles.length - 300);
+      if (this.particles.length > (this.lowQ ? 120 : 220)) this.particles.splice(0, this.particles.length - (this.lowQ ? 120 : 220));
     }
 
     stepParticles(dt) {
@@ -108,6 +108,110 @@
     tileAt(era, tx, ty) {
       if (ty < 0 || ty >= era.map.length || tx < 0 || tx >= era.map[0].length) return '#';
       return era.map[ty][tx];
+    }
+
+    /* Static world cache: everything that never animates is pre-rendered
+       once per era into an offscreen canvas. Dynamic tiles (water shimmer,
+       flames, portal pulse, flower twinkle) are drawn live on top. */
+    buildStatic(era) {
+      try {
+        const ts = T.TILE;
+        const mw = era.map[0].length * ts, mh = era.map.length * ts;
+        const cv = document.createElement('canvas');
+        cv.width = mw; cv.height = mh;
+        const g = cv.getContext('2d');
+        if (!g) return;
+        for (let ty = 0; ty < era.map.length; ty++) {
+          for (let tx = 0; tx < era.map[0].length; tx++) {
+            const ch = era.map[ty][tx];
+            const px = tx * ts, py = ty * ts;
+            const alt = (tx + ty) % 2 === 0;
+            if (ch === '~') {
+              g.fillStyle = era.water;
+              g.fillRect(px, py, ts, ts);
+            } else {
+              g.fillStyle = alt ? era.ground[0] : era.ground[1];
+              g.fillRect(px, py, ts, ts);
+              if (ch === ',' || ch === '*') {
+                g.fillStyle = 'rgba(0,0,0,0.12)';
+                g.fillRect(px + 5, py + 14, 3, 5);
+                g.fillRect(px + 14, py + 10, 3, 6);
+              }
+            }
+          }
+        }
+        // static props (everything except animated F/A flames)
+        const keepT = this.t;
+        this.t = 0;
+        const realCtx = this.ctx;
+        this.ctx = g;
+        const DYN = new Set(['~', '*', 'o', 'F', 'A']);
+        for (let ty = 0; ty < era.map.length; ty++) {
+          for (let tx = 0; tx < era.map[0].length; tx++) {
+            const ch = era.map[ty][tx];
+            if (DYN.has(ch)) continue;
+            if ('TRHNWBP#'.includes(ch)) this.drawProp(era, ch, tx * ts, ty * ts);
+          }
+        }
+        this.ctx = realCtx;
+        this.t = keepT;
+        this.staticLayer = cv;
+        this.staticEra = era.id;
+        this.dynTiles = [];
+        for (let ty = 0; ty < era.map.length; ty++) {
+          for (let tx = 0; tx < era.map[0].length; tx++) {
+            const ch = era.map[ty][tx];
+            if (DYN.has(ch)) this.dynTiles.push({ x: tx, y: ty, ch });
+          }
+        }
+      } catch (e) {}
+    }
+
+    drawGround(era, cam) {
+      const ctx = this.ctx, ts = T.TILE;
+      if (this.staticEra !== era.id || !this.staticLayer) this.buildStatic(era);
+      if (this.staticLayer) {
+        ctx.drawImage(this.staticLayer, cam.x, cam.y, T.W, T.H, 0, 0, T.W, T.H);
+      } else {
+        ctx.fillStyle = era.ground[0];
+        ctx.fillRect(0, 0, T.W, T.H);
+      }
+      if (this.lowQ) return; // low quality: static frame only + actors
+      // dynamic tiles in view
+      const x0 = Math.max(0, Math.floor(cam.x / ts)), y0 = Math.max(0, Math.floor(cam.y / ts));
+      const x1 = Math.ceil((cam.x + T.W) / ts), y1 = Math.ceil((cam.y + T.H) / ts);
+      for (const t of this.dynTiles) {
+        if (t.x < x0 || t.x > x1 || t.y < y0 || t.y > y1) continue;
+        const px = t.x * ts - cam.x, py = t.y * ts - cam.y;
+        if (t.ch === '~') {
+          ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+          ctx.lineWidth = 1;
+          const w1 = Math.sin(this.t * 2 + t.x * 0.8 + t.y) * 3;
+          ctx.beginPath();
+          ctx.moveTo(px + 3, py + 8 + w1); ctx.lineTo(px + ts - 3, py + 8 + w1);
+          ctx.moveTo(px + 3, py + 17 - w1); ctx.lineTo(px + ts - 3, py + 17 - w1);
+          ctx.stroke();
+        } else if (t.ch === '*') {
+          ctx.fillStyle = era.accent;
+          ctx.globalAlpha = 0.6 + 0.4 * Math.sin(this.t * 3 + t.x + t.y * 2);
+          ctx.fillRect(px + 6, py + 6, 4, 4);
+          ctx.fillRect(px + 15, py + 15, 4, 4);
+          ctx.globalAlpha = 1;
+        } else if (t.ch === 'o') {
+          const p = 0.5 + 0.5 * Math.sin(this.t * 4);
+          ctx.fillStyle = `rgba(190,170,255,${0.25 + p * 0.3})`;
+          ctx.beginPath();
+          ctx.ellipse(px + 12, py + 12, 10, 6, 0, 0, 6.2832);
+          ctx.fill();
+          ctx.strokeStyle = '#c4b5fd';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.ellipse(px + 12, py + 12, 10, 6, 0, 0, 6.2832);
+          ctx.stroke();
+        } else if (t.ch === 'F' || t.ch === 'A') {
+          this.drawProp(era, t.ch, px, py);
+        }
+      }
     }
 
     drawGround(era, cam) {
@@ -232,6 +336,12 @@
     }
 
     drawProps(era, cam) {
+      // Static props live in the cached layer; flames (F/A) are drawn by
+      // drawGround's dynamic pass. Nothing left to do per frame.
+      return;
+    }
+
+    drawPropsLegacy(era, cam) {
       const ts = T.TILE;
       const x0 = Math.max(0, Math.floor(cam.x / ts)), y0 = Math.max(0, Math.floor(cam.y / ts));
       const x1 = Math.min(era.map[0].length - 1, Math.ceil((cam.x + T.W) / ts));
@@ -317,11 +427,30 @@
 
     sky(w, h, rgb) {
       const ctx = this.ctx;
-      const g = ctx.createLinearGradient(0, 0, 0, h);
-      g.addColorStop(0, `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`);
-      g.addColorStop(1, 'rgb(6,4,18)');
-      ctx.fillStyle = g;
+      const key = rgb.join(',');
+      if (!this._sky || this._sky.key !== key) {
+        const g = ctx.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`);
+        g.addColorStop(1, 'rgb(6,4,18)');
+        this._sky = { key, grad: g };
+      }
+      ctx.fillStyle = this._sky.grad;
       ctx.fillRect(0, 0, w, h);
+    }
+
+    vignette(w, h, strength) {
+      if (!this._vig) {
+        const cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        const g = cv.getContext('2d');
+        const vg = g.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.4, w / 2, h / 2, Math.max(w, h) * 0.67);
+        vg.addColorStop(0, 'rgba(0,0,0,0)');
+        vg.addColorStop(1, 'rgba(0,0,0,0.42)');
+        g.fillStyle = vg;
+        g.fillRect(0, 0, w, h);
+        this._vig = cv;
+      }
+      this.ctx.drawImage(this._vig, 0, 0);
     }
   }
 
