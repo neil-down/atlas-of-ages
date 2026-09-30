@@ -53,7 +53,9 @@ window.ATLAS = {
         { id: 'apple', x: 33, y: 15, name: 'Apple', emoji: '🍎', questId: 'fruit' },
         { id: 'apple2', x: 24, y: 11, name: 'Apple', emoji: '🍎', questId: 'fruit' },
         { id: 'scroll-eden', x: 19, y: 7, name: 'Scroll of Beginnings', emoji: '📜',
-          codex: { title: 'The Garden', text: 'Genesis 1–2: God plants a garden in Eden. Four rivers water it. Adam is placed there "to work it and keep it" — the first job in history was gardening!' } }
+          codex: { title: 'The Garden', text: 'Genesis 1–2: God plants a garden in Eden. Four rivers water it. Adam is placed there "to work it and keep it" — the first job in history was gardening!' } },
+        { id: 'scroll-grace', x: 28, y: 18, name: 'Scroll of Grace', emoji: '📜',
+          codex: { title: 'Grace Alone', text: 'Ephesians 2:8-10 — "For by grace you have been saved through faith... not a result of works." The whole Atlas runs on this engine: God gives, we receive, and our walking is gratitude — never payment. (Sola gratia, sola fide.)' } }
       ],
       quests: [
         { id: 'fruit', name: '🍈 First Fruits', giver: 'keeper',
@@ -404,7 +406,7 @@ window.ATLAS = {
         facts: [
           'Babylon was the New York of the ancient world — the hanging gardens were counted among its wonders.',
           'Daniel served pagan kings for 70 years without bending; his open window faced Jerusalem three times a day.',
-          'In 538 BC Cyrus of Persia let the exiles return — his decree is confirmed by archaeology’s Cyrus Cylinder.'
+          'In 538 BC Cyrus of Persia let the exiles return — the Cyrus Cylinder, dug from Babylon’s ruins, echoes the same royal policy of sending peoples home.'
         ],
         verse: 'Jeremiah 29:11 — "For I know the plans I have for you... plans to prosper you and not to harm you, plans to give you hope and a future."'
       }
@@ -456,7 +458,9 @@ window.ATLAS = {
         { id: 'bread3', x: 28, y: 12, name: 'Bread', emoji: '🍞', questId: 'bread' },
         { id: 'bread4', x: 20, y: 19, name: 'Bread', emoji: '🍞', questId: 'bread' },
         { id: 'scroll-fire', x: 34, y: 21, name: 'Scroll of Fire', emoji: '📜',
-          codex: { title: 'Wind and Fire', text: 'Acts 2: a sound like violent wind, tongues as of fire, and suddenly Galileans speak a dozen languages. Three thousand believe in one day — the church’s birthday party.' } }
+          codex: { title: 'Wind and Fire', text: 'Acts 2: a sound like violent wind, tongues as of fire, and suddenly Galileans speak a dozen languages. Three thousand believe in one day — the church’s birthday party.' } },
+        { id: 'scroll-chief-end', x: 20, y: 9, name: 'Scroll of the Chief End', emoji: '📜',
+          codex: { title: 'Man’s Chief End', text: 'Westminster Shorter Catechism Q1 (1647): "Man’s chief end is to glorify God, and to enjoy Him for ever." Three centuries of Reformed children memorized this first — enjoy is a duty, not a bonus.' } }
       ],
       quests: [
         { id: 'bread', name: '🍞 The Fellowship Meal', giver: 'stephen',
@@ -475,9 +479,9 @@ window.ATLAS = {
       trial: {
         title: '⏳ Order the Church',
         events: ['The upper room', 'Wind and fire', 'Three thousand believe', 'To the ends of the earth'],
-        note: 'The final seal. Order the ages to witness the dawn.'
+        note: 'The road to Nicaea sleeps until the ages stand in order.'
       },
-      next: null,
+      next: 'creeds',
       thread: 'Cross, tomb, upper room. The story that began in a garden has grown to the ends of the earth — and it is still being written.',
       intro: {
         date: 'AD 30 and onward',
@@ -487,6 +491,170 @@ window.ATLAS = {
           'Acts 1:8 gives the whole plot: Jerusalem, Judea, Samaria, "to the end of the earth." Chapter 29 is being written now.'
         ],
         verse: 'Acts 1:8 — "You will be my witnesses in Jerusalem and in all Judea and Samaria, and to the end of the earth."'
+      }
+    },
+    {
+      id: 'creeds', name: 'Creeds & Councils', sub: 'One substance with the Father', sky: [26, 18, 52],
+      ground: ['#7a6c8f', '#6f6385'], water: '#3a86ff', accent: '#ffd166',
+      map: [
+        '########################################',
+        '#......................................#',
+        '#.......H...........H...........F......#',
+        '#............R...............R.........#',
+        '#...................***..........R.....#',
+        '#......................................#',
+        '#........W.................H...........#',
+        '#...............F........F.............#',
+        '#.....R.......................R........#',
+        '#......................................#',
+        '#.....................H........H.......#',
+        '#..........***................R........#',
+        '#.........................H....***.....#',
+        '#.......R...................R..........#',
+        '#......................................#',
+        '#.................R..........R.........#',
+        '#...........~~~.............~~~........#',
+        '#..........~~~~.............~~~~.......#',
+        '#...........~~~.............~~~........#',
+        '#......................................#',
+        '#.........H.................H..........#',
+        '#...............................o......#',
+        '#.............R.............R..........#',
+        '########################################'
+      ],
+      playerStart: { x: 5, y: 21 },
+      foes: [{ x: 28, y: 8 }, { x: 8, y: 16 }],
+      npcs: [
+        { id: 'athanasius', x: 14, y: 5, name: 'Athanasius', emoji: '⛪', color: '#e9c46a',
+          lines: ['They say Christ is a creature — the highest creature, but a creature. I say: a creature cannot save creatures.', 'Gather 3 council testimonies, and we will answer from Scripture together.'],
+          quest: 'testimony' },
+        { id: 'follower', x: 26, y: 10, name: 'Follower of Arius', emoji: '❓', color: '#8d99ae',
+          lines: ['A bleeding God? Impossible. "There was when He was not" — that is logic.', 'Bring me John’s own testimony — a scroll by the fountain — and I will read it. If it says what you claim, I will yield.'],
+          quest: 'doubt' },
+        { id: 'deacon', x: 20, y: 20, name: 'Deacon', emoji: '🕯️', color: '#90be6d',
+          lines: ['The confession spreads faster than the confusion: shadows gather where truth is debated.', 'Drive back 2 shadows. Hold the line of Nicaea!'],
+          quest: 'line' }
+      ],
+      relics: [
+        { id: 'test1', x: 19, y: 4, name: 'Testimony', emoji: '📜', questId: 'testimony' },
+        { id: 'test2', x: 12, y: 11, name: 'Testimony', emoji: '📜', questId: 'testimony' },
+        { id: 'test3', x: 28, y: 12, name: 'Testimony', emoji: '📜', questId: 'testimony' },
+        { id: 'john1', x: 34, y: 21, name: 'John’s Testimony', emoji: '📜', questId: 'doubt' },
+        { id: 'scroll-mss', x: 36, y: 6, name: 'Scroll of Copies', emoji: '📜',
+          codex: { title: 'Thousands of Witnesses', text: 'The New Testament survives in nearly 6,000 Greek manuscripts, plus thousands more in other tongues — the best-attested book of antiquity by orders of magnitude. Fragments like P52 (a scrap of John, ~AD 125) land within decades of the events.' } }
+      ],
+      quests: [
+        { id: 'testimony', name: '📜 Council Testimonies', giver: 'athanasius',
+          briefing: 'Gather 3 testimonies, then return to Athanasius.',
+          steps: [{ text: 'Gather testimonies', need: 3 }, { text: 'Return to Athanasius', talk: 'athanasius' }],
+          reward: { light: 14, codex: { title: 'Homoousios', text: 'Nicaea, AD 325: 300 bishops confess Christ "of one substance (homoousios) with the Father." Athanasius — exiled five times, "Athanasius contra mundum" — anchored it in John 1:1 ("the Word was God"), John 8:58, and Thomas’s cry "My Lord and my God!" (John 20:28).' } } },
+        { id: 'doubt', name: '❓ Answering Arius', giver: 'follower',
+          briefing: 'Hear the objection, bring John’s testimony, return.',
+          steps: [{ text: 'Hear the follower', talk: 'follower' }, { text: 'Find John’s testimony', need: 1 }, { text: 'Return to the follower', talk: 'follower' }],
+          reward: { light: 14, codex: { title: 'Was Jesus Created?', text: 'Arius taught "there was when He was not." The church answered: if Christ is a creature, no creature can bear infinite wrath — and worship of Him would be idolatry. Only God incarnate saves: "the Word became flesh" (John 1:14).' } } },
+        { id: 'line', name: '🛡️ Hold the Line', giver: 'deacon',
+          briefing: 'Drive back 2 shadows.',
+          steps: [{ text: 'Defeat shadows', slay: 2 }],
+          reward: { light: 14, codex: { title: 'Chalcedon 451', text: 'A century after Nicaea, Chalcedon confesses Christ "truly God and truly man... in two natures, without confusion, without change, without division, without separation." Precision is pastoral: get Christ wrong and comfort collapses.' } } }
+      ],
+      trial: {
+        title: '⏳ Order the Councils',
+        events: ['Fire under Rome', 'Constantine’s edict of toleration', 'Nicaea 325', 'Chalcedon 451'],
+        note: 'The road to Wittenberg sleeps until the ages stand in order.'
+      },
+      next: 'reformation',
+      thread: 'The apostles’ grandchildren faced lions; their grandchildren faced subtler beasts — ideas. The church learned to confess, precisely, who Christ is.',
+      intro: {
+        date: 'AD 64–451',
+        facts: [
+          'Rome persecuted Christians for nearly 250 years; the Colosseum’s martyrs sang on their way in.',
+          'In 313 Constantine’s Edict of Milan legalized the faith; in 325 he summoned 300 bishops to Nicaea.',
+          'The Nicene Creed is still confessed weekly by over a billion Christians — the most-recited paragraph in history.'
+        ],
+        verse: 'John 1:1 — "In the beginning was the Word, and the Word was with God, and the Word was God."'
+      }
+    },
+    {
+      id: 'reformation', name: 'Reformation', sub: 'Here I stand', sky: [50, 26, 20],
+      ground: ['#8a7a5c', '#7d6e54'], water: '#2a9d8f', accent: '#ffd166',
+      map: [
+        '########################################',
+        '#......................................#',
+        '#......H............H...........F.....#',
+        '#..........R.................R........#',
+        '#.................***............R....#',
+        '#......................................#',
+        '#.......W...................H.........#',
+        '#..............F..........F...........#',
+        '#......R.....................R........#',
+        '#......................................#',
+        '#....................H.........H......#',
+        '#...........***...............R.......#',
+        '#........................H.....***....#',
+        '#........R...................R.........#',
+        '#......................................#',
+        '#................R...........R........#',
+        '#............~~~...........~~~........#',
+        '#...........~~~~...........~~~~.......#',
+        '#............~~~...........~~~........#',
+        '#......................................#',
+        '#..........H................H.........#',
+        '#..............................o......#',
+        '#..............R.............R.........#',
+        '########################################'
+      ],
+      playerStart: { x: 5, y: 21 },
+      foes: [{ x: 30, y: 8 }, { x: 8, y: 16 }],
+      npcs: [
+        { id: 'luther', x: 12, y: 5, name: 'Luther', emoji: '⚒️', color: '#4a4e9e',
+          lines: ['I posted 95 theses on that door and the world caught fire. I only wanted a debate!', 'Five scrolls carry the whole recovery — the five solas. Gather them all and bring them to me.'],
+          quest: 'solas' },
+        { id: 'seller', x: 30, y: 13, name: 'Pardoner', emoji: '💰', color: '#9c6644',
+          lines: ['Coins in the coffer, souls out of purgatory! Grace for sale — going cheap!', 'You doubt my wares? Bring me Paul’s own letter — the scroll by the east fountain — and read what it says about righteousness.'],
+          quest: 'price' },
+        { id: 'printer', x: 20, y: 20, name: 'Printer', emoji: '🖨️', color: '#e9c46a',
+          lines: ['My press prints 3,000 pages a day. Ideas used to travel at walking pace — now they fly.', 'Darkness hates light, friend. Drive back 2 shadows while the ink dries!'],
+          quest: 'stand' }
+      ],
+      relics: [
+        { id: 'sola1', x: 18, y: 4, name: 'Sola Scriptura', emoji: '📜', questId: 'solas' },
+        { id: 'sola2', x: 13, y: 11, name: 'Sola Fide', emoji: '📜', questId: 'solas' },
+        { id: 'sola3', x: 27, y: 12, name: 'Sola Gratia', emoji: '📜', questId: 'solas' },
+        { id: 'sola4', x: 20, y: 19, name: 'Solus Christus', emoji: '📜', questId: 'solas' },
+        { id: 'sola5', x: 33, y: 6, name: 'Soli Deo Gloria', emoji: '📜', questId: 'solas' },
+        { id: 'romans1', x: 35, y: 21, name: 'Paul’s Letter', emoji: '📜', questId: 'price' },
+        { id: 'scroll-theses', x: 10, y: 16, name: 'Scroll of Theses', emoji: '📜',
+          codex: { title: 'Here I Stand', text: 'October 31, 1517: Luther nails 95 Theses to Wittenberg’s door. 1521: summoned to Worms, he refuses to recant — "Here I stand, I can do no other." 1530: the Augsburg Confession defines Lutheran faith. Conscience, bound by Scripture, moves empires.' } }
+      ],
+      quests: [
+        { id: 'solas', name: '📜 The Five Solas', giver: 'luther',
+          briefing: 'Gather the 5 solas, then return to Luther.',
+          steps: [{ text: 'Gather the solas', need: 5 }, { text: 'Return to Luther', talk: 'luther' }],
+          reward: { light: 16, codex: { title: 'The Five Solas', text: 'Sola Scriptura (Scripture alone), Sola Fide (faith alone), Sola Gratia (grace alone), Solus Christus (Christ alone), Soli Deo Gloria (glory to God alone). Five Latin battle-cries: salvation is God’s work, received by trust, revealed in Scripture.' } } },
+        { id: 'price', name: '💰 What Grace Costs', giver: 'seller',
+          briefing: 'Hear the pardoner, bring Paul’s letter, return.',
+          steps: [{ text: 'Hear the pardoner', talk: 'seller' }, { text: 'Find Paul’s letter', need: 1 }, { text: 'Return to the pardoner', talk: 'seller' }],
+          reward: { light: 14, codex: { title: 'The Righteous Shall Live by Faith', text: 'Romans 1:17 broke Luther in the tower: righteousness is GIVEN, not achieved. Tetzel’s indulgences sold what Christ gives — "without money and without price" (Isaiah 55:1). Grace for sale is grace denied.' } } },
+        { id: 'stand', name: '🖨️ While the Ink Dries', giver: 'printer',
+          briefing: 'Drive back 2 shadows.',
+          steps: [{ text: 'Defeat shadows', slay: 2 }],
+          reward: { light: 14, codex: { title: 'The Press and the Word', text: 'Gutenberg’s press (c. 1440) printed some 180 Bibles; by 1500, presses had produced millions of books. Luther called printing "God’s highest act of grace" — technology in service of truth, then as now.' } } }
+      ],
+      trial: {
+        title: '⏳ Order the Reformation',
+        events: ['95 Theses nailed', 'Here I stand at Worms', 'Augsburg Confession', 'Geneva trains pastors'],
+        note: 'The final seal. Order the ages to witness the dawn.'
+      },
+      next: null,
+      thread: 'A monk, a press, and five Latin words recovered the gospel of grace — and put a Bible in the plowboy’s hands.',
+      intro: {
+        date: '1517–1564',
+        facts: [
+          'Indulgences funded St. Peter’s Basilica; Tetzel’s jingle promised souls out of purgatory for coins.',
+          'Luther translated the New Testament into German in eleven weeks at Wartburg — the language of the people, at last.',
+          'Calvin’s Geneva trained hundreds of pastors and sent them across Europe; Knox took the fire to Scotland.'
+        ],
+        verse: 'Romans 1:17 — "The righteous shall live by faith."'
       }
     }
   ]

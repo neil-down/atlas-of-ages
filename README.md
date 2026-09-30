@@ -3,8 +3,10 @@
 **Play it: https://neil-down.github.io/atlas-of-ages/** (also local: `npm run serve` → http://localhost:8124)
 
 An explorable, animated, educational adventure built from scratch: walk the Garden,
-cross Egypt, sail Galilee. Talk to people, gather relics, fill your field journal,
-and unseal each era by ordering its events on the timeline.
+cross Egypt, sail Galilee, wander the Wilderness, weep in Babylon, gather in the
+upper room, confess at Nicaea, and stand at Wittenberg. Talk to people, gather
+relics, answer skeptics with evidence, and unseal each era by ordering its events
+on the timeline.
 
 ## Play
 
@@ -17,8 +19,15 @@ and unseal each era by ordering its events on the timeline.
 ## Never lost
 
 - First entry to each age opens a **foundations briefing**: date, three verified facts, a key verse
-- The **Threads** tab shows how the six ages connect into one story
+- The **Threads** tab shows how the eight ages connect into one story
 - Quests always name who/where; the tracker prefers business in your current age
+
+## Doctrine
+
+- Grace-alone framing throughout (Eph 2:8–10 codex; every gift given, never earned)
+- Church history: Nicaea/Chalcedon, Wittenberg/Worms/Augsburg/Geneva
+- Apologetics: answering Arius (John 1:1), indulgences (Rom 1:17), manuscript evidence, resurrection codex
+- Westminster Shorter Catechism Q1 in the codex
 
 ## Design (from research)
 

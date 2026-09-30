@@ -992,7 +992,7 @@
     SFX.play('quest');
     openDialogue(
       { name: 'The Chronicler', emoji: '🧭' },
-      ['So. A new traveler walks the ages.', 'Move with WASD or arrows — or tap where you wish to go. Press E beside glowing things.', 'Find the Keeper. The Garden needs you. I will record everything in your journal (J).'],
+      ['So. A new traveler walks the ages.', 'Move with WASD or arrows — or tap where you wish to go. Press E beside glowing things.', 'One law of these lands, pilgrim: every gift here is GIVEN, never earned. Your walking is the response, not the price. Find the Keeper. The Garden needs you.'],
       null
     );
   });

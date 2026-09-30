@@ -155,6 +155,37 @@ const server = createServer(async (req, res) => {
       locked: document.querySelectorAll('#journal-body .thread-row.locked').length
     }));
     await page.screenshot({ path: path.join(os.tmpdir(), 'opencode', 'atlas-threads.png') });
+    // Phase 4: reformation age — solas, skeptic, final trial
+    await page.evaluate(() => window.AtlasGame.goto(7));
+    await page.keyboard.press('j'); // ensure journal shut after threads check
+    await page.waitForTimeout(200);
+    out.reform = await page.evaluate(() => ({
+      era: window.ATLAS.eras[window.AtlasGame.state().eraIdx].id,
+      foes: window.AtlasGame.foes().length,
+      solasPlaced: window.ATLAS.eras[7].relics.filter((r) => r.questId === 'solas').length
+    }));
+    // talk to Luther (quest) and the Pardoner (skeptic), closing dialogue each time
+    for (const nid of ['luther', 'seller']) {
+      await page.evaluate((id) => {
+        const g = window.AtlasGame;
+        const n = window.ATLAS.eras[7].npcs.find((x) => x.id === id);
+        g.state().player.x = (n.x + 0.5) * 24; g.state().player.y = (n.y + 1.0) * 24;
+      }, nid);
+      await page.waitForTimeout(200);
+      await page.keyboard.press('e');
+      await page.waitForTimeout(300);
+      for (let i = 0; i < 8; i++) {
+        const open = await page.evaluate(() => !document.getElementById('dialogue').classList.contains('hidden'));
+        if (!open) break;
+        await page.keyboard.press('e');
+        await page.waitForTimeout(200);
+      }
+    }
+    out.reformQuests = await page.evaluate(() => {
+      const q = window.AtlasGame.state().quests;
+      return { solas: !!(q.solas || {}).active, price: !!(q.price || {}).active };
+    });
+    await page.screenshot({ path: path.join(os.tmpdir(), 'opencode', 'atlas-reform.png') });
     const errs2 = await page.evaluate(() => window.AtlasGame.state().quests);
     out.quests = Object.keys(errs2);
   } catch (e) {
