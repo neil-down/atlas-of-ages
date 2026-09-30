@@ -22,6 +22,14 @@ on the timeline.
 - The **Threads** tab shows how the eight ages connect into one story
 - Quests always name who/where; the tracker prefers business in your current age
 
+## Interface
+
+- Live **minimap** (portals, NPCs, shadows, objective ring, facing arrow)
+- Quest card with **progress bar**; fullscreen **quest banners**
+- Cinematic dialogue with **letterbox bars** and speaker medallions
+- Living title (**attract mode**), travel fades, damage flash, low-HP warning
+- **Menu**: volume, text speed, reduced motion, save reset, help scroll
+
 ## Doctrine
 
 - Grace-alone framing throughout (Eph 2:8–10 codex; every gift given, never earned)

@@ -12,10 +12,37 @@
 
   <!-- HUD -->
   <div id="hud" class="hidden">
-    <div id="quest-tracker"><span id="qt-name"></span><span id="qt-step"></span></div>
-    <div id="stats"><span id="st-level">Lv 1</span><span id="st-hearts">❤️❤️❤️</span><span id="st-light">🕯️ 0</span><span id="st-relics">🏺 0</span></div>
+    <div id="quest-tracker"><span id="qt-name"></span><div id="qt-bar"><div id="qt-fill"></div></div><span id="qt-step"></span></div>
+    <div id="stats"><span id="st-level">Lv 1</span><span id="st-hearts">❤️❤️❤️</span><span id="st-light">🕯️ 0</span><span id="st-relics">🏺 0</span><button id="btn-menu" aria-label="Menu">☰</button></div>
+    <canvas id="minimap" width="148" height="110" aria-label="Map"></canvas>
     <div id="era-banner"></div>
   </div>
+  <div id="dmg-flash"></div>
+  <div id="lowhp"></div>
+  <div id="fade"></div>
+  <div id="bar-top"></div><div id="bar-bot"></div>
+
+  <!-- Menu -->
+  <div id="menu" class="hidden">
+    <div class="panel-card">
+      <div class="panel-head"><span>⚙️ Menu</span><button data-close="menu" aria-label="Close">✕</button></div>
+      <div id="menu-body">
+        <div class="mrow"><label>🔊 Sound</label><input id="set-vol" type="range" min="0" max="100" value="80"><span id="set-vol-v">80</span></div>
+        <div class="mrow"><label>💬 Text speed</label><div id="set-speed"><button data-v="0">Slow</button><button data-v="1" class="on">Normal</button><button data-v="2">Fast</button></div></div>
+        <div class="mrow"><label>🎞️ Reduce motion</label><button id="set-motion">Off</button></div>
+        <div class="mrow"><label>🗑️ Save data</label><button id="set-wipe">Reset…</button></div>
+        <div class="mhelp">
+          <b>How to play</b>
+          <p><b>WASD / arrows</b> or tap to walk · <b>E</b> talk · gather · strike · unseal · <b>J</b> journal · <b>M</b> sound</p>
+          <p>Follow the <b style="color:#ffd166">golden arrow</b> — it always points at your objective. Golden <b>!</b> marks someone who needs you.</p>
+          <p>Portals sleep until their ages stand in order. Nothing here can truly hurt you — grace restores, always.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quest banner -->
+  <div id="qbanner" class="hidden"><div id="qb-kicker"></div><div id="qb-name"></div></div>
 
   <!-- Timeline bar -->
   <div id="timeline" class="hidden"></div>

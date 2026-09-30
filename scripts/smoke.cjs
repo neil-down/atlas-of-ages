@@ -155,6 +155,31 @@ const server = createServer(async (req, res) => {
       locked: document.querySelectorAll('#journal-body .thread-row.locked').length
     }));
     await page.screenshot({ path: path.join(os.tmpdir(), 'opencode', 'atlas-threads.png') });
+    // Phase 5: interface — fresh boot for attract + menu + minimap
+    await page.reload({ waitUntil: 'load' });
+    await page.waitForTimeout(1500);
+    out.attract = await page.evaluate(() => window.AtlasGame.engine.t > 0);
+    await page.screenshot({ path: path.join(os.tmpdir(), 'opencode', 'atlas-title.png') });
+    await page.click('#btn-start');
+    await page.waitForTimeout(400);
+    await page.click('#btn-menu');
+    await page.waitForTimeout(300);
+    out.menu = await page.evaluate(() => !document.getElementById('menu').classList.contains('hidden'));
+    await page.evaluate(() => { [...document.querySelectorAll('#set-speed button')].find((b) => b.dataset.v === '2').click(); });
+    out.speed = await page.evaluate(() => window.AtlasGame.settings().speed);
+    await page.evaluate(() => document.querySelector('#menu [data-close="menu"]').click());
+    out.menuClosed = await page.evaluate(() => document.getElementById('menu').classList.contains('hidden'));
+    out.letterbox = await page.evaluate(() => document.body.classList.contains('talking'));
+    out.minimap = await page.evaluate(() => {
+      const c = document.getElementById('minimap');
+      const g = c.getContext('2d');
+      const d = g.getImageData(0, 0, 148, 110).data;
+      let lit = 0;
+      for (let i = 0; i < d.length; i += 16) if (d[i] + d[i + 1] + d[i + 2] > 24) lit++;
+      return { present: true, lit };
+    });
+    out.qbar = await page.evaluate(() => !!document.getElementById('qt-fill'));
+    await page.screenshot({ path: path.join(os.tmpdir(), 'opencode', 'atlas-ui.png') });
     // Phase 4: reformation age — solas, skeptic, final trial
     await page.evaluate(() => window.AtlasGame.goto(7));
     await page.keyboard.press('j'); // ensure journal shut after threads check

@@ -7,6 +7,28 @@
 
   function $(id) { return document.getElementById(id); }
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+
+  /* ---------- settings ---------- */
+  const SET_KEY = 'atlas_of_ages_settings';
+  function loadSettings() {
+    try {
+      const s = JSON.parse(localStorage.getItem(SET_KEY) || '{}');
+      return { vol: s.vol == null ? 80 : s.vol, speed: s.speed == null ? 1 : s.speed, motion: !!s.motion };
+    } catch (e) { return { vol: 80, speed: 1, motion: false }; }
+  }
+  const SET = loadSettings();
+  function saveSettings() { try { localStorage.setItem(SET_KEY, JSON.stringify(SET)); } catch (e) {} }
+  function reduced() {
+    try {
+      if (document.body.classList.contains('reduced-motion')) return true;
+      if (SET.motion) return true;
+      return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    } catch (e) { return false; }
+  }
+  function applySettings() {
+    SFX.vol = SET.vol / 100;
+    document.body.classList.toggle('reduced-motion', !!SET.motion);
+  }
   function toast(msg, ms) {
     const t = $('toast');
     t.textContent = msg;
@@ -14,10 +36,24 @@
     clearTimeout(toast._t);
     toast._t = setTimeout(() => t.classList.add('hidden'), ms || 2400);
   }
+  function qbanner(kicker, name) {
+    try {
+      if (reduced()) return;
+      const b = $('qbanner');
+      $('qb-kicker').textContent = kicker;
+      $('qb-name').textContent = name;
+      b.classList.remove('hidden');
+      b.style.animation = 'none';
+      void b.offsetWidth;
+      b.style.animation = '';
+      clearTimeout(qbanner._t);
+      qbanner._t = setTimeout(() => b.classList.add('hidden'), 3000);
+    } catch (e) {}
+  }
 
   /* ---------- tiny synth ---------- */
   const SFX = {
-    ctx: null, muted: false,
+    ctx: null, muted: false, vol: 0.8,
     ensure() {
       if (this.ctx) return true;
       const AC = window.AudioContext || window.webkitAudioContext;
@@ -31,10 +67,9 @@
         const c = this.ctx, o = c.createOscillator(), g = c.createGain();
         o.type = type || 'sine'; o.frequency.value = f;
         g.gain.setValueAtTime(0.0001, t);
-        g.gain.exponentialRampToValueAtTime(vol || 0.12, t + 0.02);
+        g.gain.exponentialRampToValueAtTime((vol || 0.12) * (this.vol == null ? 1 : this.vol), t + 0.02);
         g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-        o.connect(g); g.connect(c.destination);
-        o.start(t); o.stop(t + dur + 0.05);
+        o.connect(g); g.connect(c.destination);        o.start(t); o.stop(t + dur + 0.05);
       } catch (e) {}
     },
     play(name) {
@@ -169,6 +204,7 @@
     SFX.play('done');
     engine.burst(S.player.x, S.player.y, ['#ffd166', '#fff7d6', '#6ee7b7'], 22, 130);
     toast(`🏆 Quest complete: ${q.name}  (+${(q.reward && q.reward.light) || 8} 🕯️)`);
+    qbanner('Quest complete', q.name);
     save();
     renderHUD();
   }
@@ -178,6 +214,7 @@
     st.active = true;
     SFX.play('quest');
     toast(`📜 New quest: ${q.name}`);
+    qbanner('New quest', q.name);
     save();
     renderHUD();
   }
@@ -189,6 +226,8 @@
     $('dialogue').classList.remove('hidden');
     $('dlg-emoji').textContent = npc.emoji;
     $('dlg-name').textContent = npc.name;
+    try { $('dialogue').style.borderColor = npc.color || 'rgba(255,215,130,0.6)'; } catch (e) {}
+    try { document.body.classList.add('talking'); } catch (e) {}
     typeLine();
   }
   function typeLine() {
@@ -198,13 +237,14 @@
     dlg.typing = true;
     let i = 0;
     clearInterval(dlg.timer);
-    const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduced) { el.textContent = dlg.full; dlg.typing = false; return; }
+    if (reduced()) { el.textContent = dlg.full; dlg.typing = false; return; }
+    const step = [1, 2, 3][SET.speed] || 2;
+    const iv = [36, 22, 8][SET.speed];
     dlg.timer = setInterval(() => {
-      i += 2;
+      i += step;
       el.textContent = dlg.full.slice(0, i);
       if (i >= dlg.full.length) { clearInterval(dlg.timer); dlg.typing = false; }
-    }, 24);
+    }, iv == null ? 22 : iv);
   }
   function advanceDialogue() {
     if (!dlg.open) return;
@@ -219,6 +259,7 @@
     if (dlg.idx >= dlg.lines.length) {
       dlg.open = false;
       $('dialogue').classList.add('hidden');
+      try { document.body.classList.remove('talking'); } catch (e) {}
       const cb = dlg.onDone;
       dlg.onDone = null;
       if (cb) cb();
@@ -345,11 +386,17 @@
     if (p.iframes > 0 || p.hearts <= 0) return;
     p.hearts--;
     p.iframes = 1.2;
-    SHAKE = 0.35;
+    SHAKE = reduced() ? 0 : 0.35;
     const a = Math.atan2(p.y - f.y, p.x - f.x);
     engine.moveBody(era(), p, Math.cos(a) * 30, Math.sin(a) * 30);
     engine.burst(p.x, p.y, ['#e63946', '#fff7d6'], 14, 130);
     SFX.play('hurt');
+    try {
+      const f = $('dmg-flash');
+      f.classList.remove('hit');
+      void f.offsetWidth;
+      f.classList.add('hit');
+    } catch (e) {}
     renderHUD();
     if (p.hearts <= 0) {
       toast('💔 Grace restores you — no penalty, pilgrim.');
@@ -610,17 +657,23 @@
     const atPortal = onPortalPad();
     const nxt = eras()[Math.min(eras().length - 1, eras().findIndex((x) => x.id === e.next))];
     const doSwitch = () => {
-      S.eraIdx = eras().findIndex((x) => x.id === nxt.id);
-      S.unlocked = Math.max(S.unlocked, S.eraIdx);
-      S.seen[nxt.id] = 1;
-      placePlayer();
-      spawnFoes();
-      save();
-      renderAll();
-      const b = $('era-banner');
-      b.textContent = era().name + ' — ' + era().sub;
-      setTimeout(() => { b.textContent = era().name; }, 2600);
-      toast(`🌀 ${era().name}`);
+      const go = () => {
+        S.eraIdx = eras().findIndex((x) => x.id === nxt.id);
+        S.unlocked = Math.max(S.unlocked, S.eraIdx);
+        S.seen[nxt.id] = 1;
+        placePlayer();
+        spawnFoes();
+        save();
+        renderAll();
+        const b = $('era-banner');
+        b.textContent = era().name + ' — ' + era().sub;
+        setTimeout(() => { b.textContent = era().name; }, 2600);
+        toast(`🌀 ${era().name}`);
+        try { $('fade').classList.remove('on'); } catch (e) {}
+      };
+      if (reduced()) { go(); return; }
+      try { $('fade').classList.add('on'); } catch (e) {}
+      setTimeout(go, 460);
     };
     // Every first entry to an unseen era briefs its foundations —
     // trial victories and portal steps alike.
@@ -683,8 +736,21 @@
     const o = currentObjective();
     $('qt-name').textContent = o ? o.q.name : '🌟 Atlas complete — keep exploring!';
     $('qt-step').textContent = o ? o.step : `${S.codex.length} codex entries gathered`;
+    try {
+      let frac = 0;
+      if (o) {
+        const st0 = S.quests[o.q.id];
+        const s0 = o.q.steps[st0.step];
+        if (!s0) frac = 1;
+        else if (s0.need) frac = Math.min(1, collectCount(o.q.id) / s0.need);
+        else if (s0.slay) frac = Math.min(1, killCount(o.q.era) / s0.slay);
+        else frac = (st0.step + 0.5) / o.q.steps.length;
+      } else frac = 1;
+      $('qt-fill').style.width = Math.round(frac * 100) + '%';
+    } catch (e) {}
     $('st-level').textContent = 'Lv ' + S.level;
     $('st-hearts').textContent = '❤️'.repeat(Math.max(0, S.player.hearts)) + '🖤'.repeat(Math.max(0, 3 - S.player.hearts));
+    try { document.body.classList.toggle('lowhp', S.started && S.player.hearts === 1); } catch (e) {}
     $('st-light').textContent = '🕯️ ' + S.light;
     $('st-relics').textContent = '🏺 ' + S.relics.length;
     $('era-banner').textContent = era().name;
@@ -816,13 +882,150 @@
     }
   };
 
+  /* ---------- minimap ---------- */
+  function drawMinimap() {
+    try {
+      const mm = $('minimap');
+      if (!mm) return;
+      const g = mm.getContext && mm.getContext('2d');
+      if (!g) return;
+      const e = era();
+      const mw = e.map[0].length, mh = e.map.length;
+      const sx = 148 / mw, sy = 110 / mh;
+      g.clearRect(0, 0, 148, 110);
+      for (let y = 0; y < mh; y++) {
+        for (let x = 0; x < mw; x++) {
+          const ch = e.map[y][x];
+          if (ch === '~') g.fillStyle = '#2a6f97';
+          else if (ch === '#' || ch === 'T' || ch === 'P') g.fillStyle = 'rgba(255,255,255,0.16)';
+          else if (ch === 'H' || ch === 'N') g.fillStyle = 'rgba(255,215,130,0.55)';
+          else if (ch === 'o') g.fillStyle = '#c4b5fd';
+          else continue;
+          g.fillRect(x * sx, y * sy, Math.ceil(sx), Math.ceil(sy));
+        }
+      }
+      const dot = (wx, wy, c, r) => {
+        g.fillStyle = c;
+        g.beginPath();
+        g.arc((wx / TS / mw) * 148, (wy / TS / mh) * 110, r || 2, 0, 6.2832);
+        g.fill();
+      };
+      for (const n of (e.npcs || [])) dot((n.x + 0.5) * TS, (n.y + 0.5) * TS, '#ffffff', 2);
+      for (const f of FOES) dot(f.x, f.y, '#e63946', 2);
+      const pp = portalPos();
+      if (pp) {
+        const pr = 3 + Math.sin(engine.t * 4) * 1.2;
+        g.strokeStyle = '#ffd166';
+        g.lineWidth = 1.5;
+        g.beginPath();
+        g.arc((pp.x / TS / mw) * 148, (pp.y / TS / mh) * 110, pr + 2, 0, 6.2832);
+        g.stroke();
+      }
+      const tgt = objectiveTarget();
+      if (tgt) {
+        g.strokeStyle = '#f0f';
+        g.lineWidth = 1.5;
+        const mrx = (tgt.x / TS / mw) * 148, mry = (tgt.y / TS / mh) * 110;
+        g.beginPath();
+        g.arc(mrx, mry, 4 + Math.sin(engine.t * 5), 0, 6.2832);
+        g.stroke();
+      }
+      // pilgrim arrow
+      const px = (S.player.x / TS / mw) * 148, py = (S.player.y / TS / mh) * 110;
+      const ang = S.player.dir === 'l' ? Math.PI : S.player.dir === 'r' ? 0 : S.player.dir === 'u' ? -Math.PI / 2 : Math.PI / 2;
+      g.save();
+      g.translate(px, py);
+      g.rotate(ang);
+      g.fillStyle = '#ffd166';
+      g.beginPath();
+      g.moveTo(5, 0); g.lineTo(-3, -3.5); g.lineTo(-3, 3.5);
+      g.closePath(); g.fill();
+      g.restore();
+    } catch (e) {}
+  }
+
+  /* ---------- menu ---------- */
+  function openMenu() {
+    try {
+      $('set-vol').value = SET.vol;
+      $('set-vol-v').textContent = SET.vol;
+      document.querySelectorAll('#set-speed button').forEach((b) => b.classList.toggle('on', Number(b.dataset.v) === SET.speed));
+      const mo = $('set-motion');
+      mo.textContent = SET.motion ? 'On' : 'Off';
+      mo.classList.toggle('on', !!SET.motion);
+      const w = $('set-wipe');
+      w.classList.remove('arm');
+      w.textContent = 'Reset…';
+      $('menu').classList.remove('hidden');
+      SFX.play('select');
+    } catch (e) {}
+  }
+  $('btn-menu').addEventListener('click', openMenu);
+  $('set-vol').addEventListener('input', (e) => {
+    SET.vol = Number(e.target.value) || 0;
+    $('set-vol-v').textContent = SET.vol;
+    saveSettings();
+    applySettings();
+  });
+  document.querySelectorAll('#set-speed button').forEach((b) => b.addEventListener('click', () => {
+    SET.speed = Number(b.dataset.v) || 0;
+    saveSettings();
+    openMenu();
+    SFX.play('select');
+  }));
+  $('set-motion').addEventListener('click', () => {
+    SET.motion = !SET.motion;
+    saveSettings();
+    applySettings();
+    openMenu();
+  });
+  $('set-wipe').addEventListener('click', () => {
+    const w = $('set-wipe');
+    if (!w.classList.contains('arm')) {
+      w.classList.add('arm');
+      w.textContent = 'Really erase?';
+      setTimeout(() => { try { w.classList.remove('arm'); w.textContent = 'Reset…'; } catch (e) {} }, 3000);
+      return;
+    }
+    try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+    location.reload();
+  });
+
+  /* ---------- attract mode (living title backdrop) ---------- */
+  function attractFrame() {
+    try {
+      const ae = eras()[0];
+      const mw = ae.map[0].length * TS;
+      const span = Math.max(0, mw - 960);
+      const acam = {
+        x: span * (0.5 + 0.5 * Math.sin(engine.t * 0.06)),
+        y: 40 + Math.sin(engine.t * 0.09) * 20
+      };
+      const ctx = engine.ctx;
+      engine.sky(960, 600, ae.sky);
+      engine.drawGround(ae, acam);
+      for (const n of (ae.npcs || [])) {
+        const nx = (n.x + 0.5) * TS - acam.x, ny = (n.y + 0.5) * TS - acam.y;
+        engine.drawPerson(nx, ny, { color: n.color, hood: '#5a3d5a', dir: 'd', phase: engine.t * 3 + n.x, moving: false });
+        engine.drawBadge(nx, ny, n.emoji, null);
+      }
+      engine.drawProps(ae, acam);
+      const vg = ctx.createRadialGradient(480, 300, 260, 480, 300, 640);
+      vg.addColorStop(0, 'rgba(0,0,0,0)');
+      vg.addColorStop(1, 'rgba(0,0,0,0.55)');
+      ctx.fillStyle = vg;
+      ctx.fillRect(0, 0, 960, 600);
+    } catch (e) {}
+  }
   /* ---------- main loop ---------- */
   let last = 0, cam = { x: 0, y: 0 }, autosave = 0;
   function frame(now) {
-    requestAnimationFrame(frame);
+  applySettings();
+  requestAnimationFrame(frame);
     const dt = Math.min(0.05, (now - last) / 1000 || 0.016);
     last = now;
     engine.t += dt;
+    if (!S.started) { attractFrame(); return; }
     const e = era();
     const uiBusy = dlg.open || !$('journal').classList.contains('hidden') || !$('trial').classList.contains('hidden') || !$('scroll').classList.contains('hidden');
 
@@ -966,6 +1169,7 @@
     }
     engine.stepParticles(dt);
     engine.drawParticles(cam);
+    drawMinimap();
     // vignette
     const vg = ctx.createRadialGradient(480, 300, 260, 480, 300, 640);
     vg.addColorStop(0, 'rgba(0,0,0,0)');
@@ -1034,6 +1238,7 @@
   // expose for tests
   window.AtlasGame = {
     state: () => S, engine, interact, openTrial, SFX,
+    settings: () => SET,
     foes: () => FOES,
     targetInfo() {
       const t = objectiveTarget();
