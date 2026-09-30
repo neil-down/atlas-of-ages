@@ -50,6 +50,10 @@ for (const e of ATLAS.eras) {
     }
   }
   if (!e.trial || e.trial.events.length !== 4) errs.push(`${e.id} trial must have 4 events`);
+  if (!e.thread || e.thread.length < 20) errs.push(`${e.id} missing story thread`);
+  if (!e.intro || !e.intro.date) errs.push(`${e.id} missing intro date`);
+  if (!e.intro || !Array.isArray(e.intro.facts) || e.intro.facts.length !== 3) errs.push(`${e.id} intro needs exactly 3 facts`);
+  if (!e.intro || !e.intro.verse || e.intro.verse.length < 10) errs.push(`${e.id} missing intro verse`);
 }
 console.log(errs.length ? 'FAIL\n' + errs.join('\n') : 'CONTENT OK');
 process.exit(errs.length ? 1 : 0);

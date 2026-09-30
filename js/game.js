@@ -62,7 +62,7 @@
   /* ---------- state ---------- */
   function freshState() {
     return {
-      eraIdx: 0, unlocked: 0, portals: {}, kills: {},
+      eraIdx: 0, unlocked: 0, portals: {}, kills: {}, seen: {},
       player: { x: 0, y: 0, dir: 'd', phase: 0, moving: false, hearts: 3, iframes: 0, swingT: 0, swingCD: 0 },
       quests: {}, relics: [], codex: [],
       light: 0, level: 1, won: false
@@ -446,6 +446,58 @@
     return null;
   }
 
+  /* Where next? Resolves the live objective to a world position so the
+     compass arrow and the E-prompt always agree with interact(). */
+  function portalPos() {
+    const pads = portalTiles();
+    if (!pads.length) return null;
+    return { x: (pads[0].x + 0.5) * TS, y: (pads[0].y + 0.5) * TS };
+  }
+  function objectiveTarget() {
+    const o = currentObjective();
+    if (o) {
+      const st = S.quests[o.q.id] || { step: 0 };
+      const s = o.q.steps[st.step];
+      if (s) {
+        if (s.talk) {
+          const n = (era().npcs || []).find((x) => x.id === s.talk);
+          if (n) return { x: (n.x + 0.5) * TS, y: (n.y + 0.5) * TS, label: 'Talk to ' + n.name, kind: 'talk' };
+        }
+        if (s.need) {
+          let best = null, bd = 1e9;
+          for (const r of (era().relics || [])) {
+            if (r.questId !== o.q.id || S.relics.includes(r.id)) continue;
+            const rx = (r.x + 0.5) * TS, ry = (r.y + 0.5) * TS;
+            const d = Math.hypot(rx - S.player.x, ry - S.player.y);
+            if (d < bd) { bd = d; best = { x: rx, y: ry, label: r.name, kind: 'take' }; }
+          }
+          if (best) return best;
+        }
+        if (s.slay) {
+          const f = nearestFoe(1e9);
+          if (f) return { x: f.foe.x, y: f.foe.y, label: 'Strike the shadow', kind: 'foe' };
+        }
+      }
+    }
+    const pp = portalPos();
+    if (pp) return { x: pp.x, y: pp.y, label: S.portals[era().id] ? 'Travel onward' : 'Unseal the portal', kind: 'portal' };
+    return null;
+  }
+  function promptFor() {
+    const p = S.player;
+    const ft = nearestFoe(30);
+    const n = nearbyNPC();
+    const nd = n ? Math.hypot((n.x + 0.5) * TS - p.x, (n.y + 0.5) * TS - p.y) : 1e9;
+    if (ft && (!n || ft.d < nd)) return 'E · Strike!';
+    if (n && nd <= 34) return 'E · Talk to ' + n.name;
+    const r = nearbyRelic();
+    if (r) return 'E · Take ' + r.name;
+    const pads = portalTiles();
+    const onPad = pads.some((t) => Math.hypot((t.x + 0.5) * TS - p.x, (t.y + 0.5) * TS - p.y) < 40);
+    if (onPad) return S.portals[era().id] ? 'E · Travel onward' : 'E · Unseal the way';
+    return null;
+  }
+
   /* ---------- portals + trial ---------- */
   function portalTiles() { return findTiles('o'); }
   function onPortalPad() {
@@ -556,9 +608,11 @@
       return;
     }
     const atPortal = onPortalPad();
-    setTimeout(() => {
-      S.eraIdx = Math.min(eras().length - 1, eras().findIndex((x) => x.id === e.next));
+    const nxt = eras()[Math.min(eras().length - 1, eras().findIndex((x) => x.id === e.next))];
+    const doSwitch = () => {
+      S.eraIdx = eras().findIndex((x) => x.id === nxt.id);
       S.unlocked = Math.max(S.unlocked, S.eraIdx);
+      S.seen[nxt.id] = 1;
       placePlayer();
       spawnFoes();
       save();
@@ -567,8 +621,42 @@
       b.textContent = era().name + ' — ' + era().sub;
       setTimeout(() => { b.textContent = era().name; }, 2600);
       toast(`🌀 ${era().name}`);
-    }, atPortal ? 350 : 0);
+    };
+    // Every first entry to an unseen era briefs its foundations —
+    // trial victories and portal steps alike.
+    if (!S.seen[nxt.id]) {
+      showScroll(nxt, doSwitch);
+    } else {
+      setTimeout(doSwitch, atPortal ? 350 : 0);
+    }
   }
+
+  /* Era foundations briefing: date, facts, verse + the connecting thread. */
+  let scrollCb = null;
+  function showScroll(nextEra, cb) {
+    const i = nextEra.intro || {};
+    const facts = (i.facts || []).map((f) => `<li>${f}</li>`).join('');
+    $('scroll-body').innerHTML =
+      `<h2>${nextEra.name}</h2><div id="scroll-date">${i.date || ''} · ${nextEra.sub || ''}</div>` +
+      `<div class="thread">${nextEra.thread || ''}</div>` +
+      `<ul>${facts}</ul><div class="verse">${i.verse || ''}</div>`;
+    $('scroll').classList.remove('hidden');
+    SFX.play('quest');
+    scrollCb = () => {
+      scrollCb = null;
+      $('scroll').classList.add('hidden');
+      if (cb) cb();
+    };
+  }
+  function closeScroll() {
+    if (scrollCb) scrollCb();
+    else $('scroll').classList.add('hidden');
+  }
+  function dismissScrollSilent() {
+    scrollCb = null;
+    try { $('scroll').classList.add('hidden'); } catch (e) {}
+  }
+  $('scroll-go').addEventListener('click', closeScroll);
 
   /* ---------- HUD / journal / timeline ---------- */
   function currentObjective() {
@@ -625,8 +713,7 @@
     tab = tab || 'quests';
     document.querySelectorAll('.panel-tabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
     const body = $('journal-body');
-    if (tab === 'quests') {
-      const ids = Object.keys(S.quests);
+    if (tab === 'quests') {      const ids = Object.keys(S.quests);
       if (!ids.length) { body.innerHTML = '<p class="empty">No quests yet — talk to someone with a golden !</p>'; return; }
       body.innerHTML = ids.map((id) => {
         const q = questDef(id), st = S.quests[id];
@@ -637,6 +724,11 @@
           return `<li class="${done ? 'did' : ''}">${label}</li>`;
         }).join('');
         return `<div class="jq ${st.done ? 'done' : ''}"><span class="st">${st.done ? '✅ done' : st.active ? '🟡 active' : '… '}</span><b>${q.name}</b><small>${q.briefing}</small><ol>${steps}</ol></div>`;
+      }).join('');
+    } else if (tab === 'threads') {
+      body.innerHTML = '<p style="color:#a99e83;font-size:13px;margin-bottom:8px">One story, six ages — each age opens the next.</p>' + eras().map((er, i) => {
+        const known = i <= S.unlocked;
+        return `<div class="thread-row ${known ? '' : 'locked'}"><b>${known ? er.name : '🔒 ???'}</b><p>${known ? (er.thread || '') : 'Walk further to reveal this thread.'}</p></div>`;
       }).join('');
     } else {
       body.innerHTML = S.codex.length
@@ -732,7 +824,7 @@
     last = now;
     engine.t += dt;
     const e = era();
-    const uiBusy = dlg.open || !$('journal').classList.contains('hidden') || !$('trial').classList.contains('hidden');
+    const uiBusy = dlg.open || !$('journal').classList.contains('hidden') || !$('trial').classList.contains('hidden') || !$('scroll').classList.contains('hidden');
 
     // click-to-move
     const click = engine.takeClick();
@@ -742,6 +834,8 @@
     if (engine.takeInteract()) {
       if (!S.started || !$('title').classList.contains('hidden')) {
         // title screen consumes its own buttons; ignore world input
+      } else if (!$('scroll').classList.contains('hidden')) {
+        closeScroll();
       } else if (uiBusy) {
         if (dlg.open) advanceDialogue();
       } else {
@@ -830,6 +924,46 @@
     }
     engine.drawProps(e, cam);
     drawFoes(cam);
+    // guidance layer: E-prompt above the pilgrim + golden compass arrow
+    if (S.started && !uiBusy) {
+      const ctx = engine.ctx;
+      const px = p.x - cam.x, py = p.y - cam.y;
+      const pr = promptFor();
+      if (pr) {
+        ctx.font = 'bold 12px Georgia, serif';
+        const wpx = ctx.measureText(pr).width + 16;
+        ctx.fillStyle = 'rgba(8,6,26,0.85)';
+        ctx.strokeStyle = 'rgba(255,215,130,0.7)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(px - wpx / 2, py - 44, wpx, 20, 8);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#ffe9b0';
+        ctx.textAlign = 'center';
+        ctx.fillText(pr, px, py - 30);
+      }
+      const tgt = objectiveTarget();
+      if (tgt) {
+        const dx = tgt.x - p.x, dy = tgt.y - p.y;
+        const d = Math.hypot(dx, dy);
+        if (d > 70) {
+          const a = Math.atan2(dy, dx);
+          const ax = px + Math.cos(a) * 30, ay = py + Math.sin(a) * 30;
+          const pulse = 0.65 + 0.35 * Math.sin(engine.t * 4);
+          ctx.save();
+          ctx.translate(ax, ay);
+          ctx.rotate(a);
+          ctx.globalAlpha = pulse;
+          ctx.fillStyle = '#ffd166';
+          ctx.beginPath();
+          ctx.moveTo(10, 0); ctx.lineTo(-6, -7); ctx.lineTo(-3, 0); ctx.lineTo(-6, 7);
+          ctx.closePath(); ctx.fill();
+          ctx.restore();
+          ctx.globalAlpha = 1;
+        }
+      }
+    }
     engine.stepParticles(dt);
     engine.drawParticles(cam);
     // vignette
@@ -849,6 +983,7 @@
     S.started = true;
     placePlayer();
     spawnFoes();
+    S.seen[era().id] = 1;
     save();
     $('title').classList.add('hidden');
     $('hud').classList.remove('hidden');
@@ -865,6 +1000,8 @@
   $('btn-continue').addEventListener('click', () => {
     S.started = true;
     if (!S.player.hearts) S.player.hearts = 3;
+    S.seen = S.seen || {};
+    S.seen[era().id] = 1;
     spawnFoes();
     $('title').classList.add('hidden');
     $('hud').classList.remove('hidden');
@@ -898,7 +1035,12 @@
   window.AtlasGame = {
     state: () => S, engine, interact, openTrial, SFX,
     foes: () => FOES,
-    goto(i) { S.eraIdx = i; S.unlocked = Math.max(S.unlocked, i); placePlayer(); spawnFoes(); renderAll(); }
+    targetInfo() {
+      const t = objectiveTarget();
+      const pr = !S.started ? null : promptFor();
+      return { target: t, prompt: pr };
+    },
+    goto(i) { dismissScrollSilent(); S.eraIdx = i; S.unlocked = Math.max(S.unlocked, i); S.seen[era().id] = 1; placePlayer(); spawnFoes(); renderAll(); }
   };
   requestAnimationFrame(frame);
 })();

@@ -37,7 +37,7 @@
   <div id="journal" class="hidden">
     <div class="panel-card">
       <div class="panel-head"><span>📖 Field Journal</span><button data-close="journal" aria-label="Close">✕</button></div>
-      <div class="panel-tabs"><button data-tab="quests" class="on">Quests</button><button data-tab="codex">Codex</button></div>
+      <div class="panel-tabs"><button data-tab="quests" class="on">Quests</button><button data-tab="codex">Codex</button><button data-tab="threads">Threads</button></div>
       <div id="journal-body"></div>
     </div>
   </div>
@@ -50,6 +50,15 @@
       <div id="trial-slots"></div>
       <div id="trial-cards"></div>
       <div id="trial-msg"></div>
+    </div>
+  </div>
+
+  <!-- Era scroll (foundations briefing on first entry) -->
+  <div id="scroll" class="hidden">
+    <div class="panel-card">
+      <div class="panel-head"><span id="scroll-kicker">🧵 The Thread Continues</span></div>
+      <div id="scroll-body"></div>
+      <button id="scroll-go">Continue the journey ▸</button>
     </div>
   </div>
 

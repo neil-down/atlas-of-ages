@@ -135,6 +135,27 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #f3ead3; }
 #trial-msg.good { color: #6ee7b7; }
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
 
+/* Era scroll */
+#scroll {
+  position: fixed; inset: 0; z-index: 8; display: flex; align-items: center; justify-content: center;
+  background: rgba(4, 2, 14, 0.72); padding: 16px;
+}
+#scroll-body { padding: 16px 18px; overflow-y: auto; }
+#scroll-body h2 { color: #fff7e0; font-size: 26px; margin-bottom: 2px; }
+#scroll-date { color: #f9c74f; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 10px; }
+#scroll-body .thread { font-style: italic; color: #e9dfc8; border-left: 3px solid #f9c74f; padding-left: 10px; margin-bottom: 12px; line-height: 1.5; }
+#scroll-body ul { margin: 0 0 12px 18px; color: #cfc4a8; font-size: 14px; line-height: 1.55; }
+#scroll-body .verse { color: #fde68a; font-size: 14px; font-style: italic; line-height: 1.5; }
+#scroll-go {
+  margin: 0 18px 18px; padding: 13px; font-size: 16px; font-weight: bold; color: #1c1005;
+  background: linear-gradient(135deg, #fde68a, #f59e0b); border: none; border-radius: 10px; cursor: pointer;
+}
+.thread-row { border-bottom: 1px dotted rgba(255,255,255,0.15); padding: 8px 0; }
+.thread-row b { color: #fde68a; display: block; }
+.thread-row p { color: #cfc4a8; font-size: 13px; font-style: italic; margin-top: 2px; }
+.thread-row.locked b { color: #5b5470; }
+.thread-row.locked p { color: #5b5470; }
+
 /* Toast */
 #toast {
   position: fixed; top: 64px; left: 50%; transform: translateX(-50%); z-index: 9;

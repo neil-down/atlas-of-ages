@@ -21,7 +21,7 @@ const server = createServer(async (req, res) => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 960, height: 600 } });
   const errs = [];
-  page.on('pageerror', (e) => errs.push('pageerror: ' + e.message));
+  page.on('pageerror', (e) => { if (!errs.some((x) => x.startsWith('pageerror: ' + e.message))) errs.push('pageerror: ' + e.message + ' @ ' + (e.stack || '').split('\n')[1]); });
   page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
   const out = {};
   try {
@@ -120,6 +120,41 @@ const server = createServer(async (req, res) => {
     }));
     out.combat = c;
     await page.screenshot({ path: path.join(os.tmpdir(), 'opencode', 'atlas-combat.png') });
+    // Phase 3: guidance + foundations + threads
+    await page.evaluate(() => window.AtlasGame.goto(0));
+    await page.evaluate(() => {
+      const g = window.AtlasGame;
+      g.state().player.x = 4.5 * 24; g.state().player.y = 7.5 * 24;
+    });
+    await page.waitForTimeout(300);
+    out.guide = await page.evaluate(() => window.AtlasGame.targetInfo());
+    // portal travel with briefing scroll (egypt unseen in this save)
+    await page.evaluate(() => { window.AtlasGame.state().portals.eden = true; });
+    await page.evaluate(() => {
+      const g = window.AtlasGame;
+      // find eden portal pad
+      const e = window.ATLAS.eras[0];
+      const pads = [];
+      e.map.forEach((row, y) => { for (let x = 0; x < row.length; x++) if (row[x] === 'o') pads.push({ x, y }); });
+      g.state().player.x = (pads[0].x + 0.5) * 24; g.state().player.y = (pads[0].y + 0.5) * 24;
+    });
+    await page.waitForTimeout(800);
+    out.scrollShown = await page.evaluate(() => !document.getElementById('scroll').classList.contains('hidden'));
+    out.scrollDate = await page.evaluate(() => document.getElementById('scroll-body').textContent.slice(0, 60));
+    await page.click('#scroll-go');
+    await page.waitForTimeout(600);
+    out.traveled = await page.evaluate(() => window.AtlasGame.state().eraIdx);
+    out.scrollClosed = await page.evaluate(() => document.getElementById('scroll').classList.contains('hidden'));
+    // threads tab
+    await page.keyboard.press('j');
+    await page.waitForTimeout(200);
+    await page.evaluate(() => { [...document.querySelectorAll('.panel-tabs button')].find((b) => b.dataset.tab === 'threads').click(); });
+    await page.waitForTimeout(200);
+    out.threads = await page.evaluate(() => ({
+      rows: document.querySelectorAll('#journal-body .thread-row').length,
+      locked: document.querySelectorAll('#journal-body .thread-row.locked').length
+    }));
+    await page.screenshot({ path: path.join(os.tmpdir(), 'opencode', 'atlas-threads.png') });
     const errs2 = await page.evaluate(() => window.AtlasGame.state().quests);
     out.quests = Object.keys(errs2);
   } catch (e) {

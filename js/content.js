@@ -70,7 +70,17 @@ window.ATLAS = {
         events: ['Light separates day and night', 'Dry land and seas appear', 'Sun, moon and stars are set', 'Humans are formed'],
         note: 'The portal to Egypt sleeps until the ages stand in order.'
       },
-      next: 'egypt'
+      next: 'egypt',
+      thread: 'Every story needs a beginning. This one starts in a garden — and every garden since has pointed back to it.',
+      intro: {
+        date: 'Before time was measured',
+        facts: [
+          'God plants a garden "in the east, in Eden" — the Hebrew word Eden means delight.',
+          'Four rivers water it. Two are still on the map: the Tigris and the Euphrates.',
+          'Adam is put there "to work it and keep it" — the first job in history was gardening.'
+        ],
+        verse: 'Genesis 2:15 — "The LORD God took the man and put him in the Garden of Eden to work it and keep it."'
+      }
     },
     {
       id: 'egypt', name: 'Egypt & Exodus', sub: 'Let my people go', sky: [46, 32, 12],
@@ -140,7 +150,17 @@ window.ATLAS = {
         events: ['Baby Moses in the basket', 'The burning bush', 'The ten plagues', 'Crossing the Red Sea'],
         note: 'The portal to Galilee sleeps until the ages stand in order.'
       },
-      next: 'galilee'
+      next: 'galilee',
+      thread: 'The seed promised in Eden became a family, then a nation — now enslaved. But God heard their groaning.',
+      intro: {
+        date: 'c. 1446 BC',
+        facts: [
+          'Israel lived in Egypt 430 years — long enough to grow from 70 people into a nation of perhaps two million.',
+          'Mudbricks with straw are real Egyptian technology; archaeologists still find straw in 3,000-year-old bricks.',
+          'The Red Sea crossing is remembered every year at Passover — the meal Jesus himself ate.'
+        ],
+        verse: 'Exodus 3:7 — "I have surely seen the affliction of my people... and I have come down to deliver them."'
+      }
     },
     {
       id: 'galilee', name: 'Galilee', sub: 'Follow me', sky: [8, 22, 44],
@@ -211,7 +231,17 @@ window.ATLAS = {
         events: ['Born in Bethlehem', 'Baptized in the Jordan', 'Calms the storm', 'Rises on the third day'],
         note: 'The way west sleeps until the ages stand in order.'
       },
-      next: 'wilderness'
+      next: 'wilderness',
+      thread: 'Empires rose and fell; prophets whispered of a Servant who would come. Now, on this lake, He walks.',
+      intro: {
+        date: 'c. AD 27–30',
+        facts: [
+          'The Sea of Galilee is a real lake, 13 miles long and 700 feet below sea level — sudden hill-funneled storms terrified even professional fishermen.',
+          'Galilee sat on trade crossroads; its towns heard a dozen languages — perfect ground for news that would travel.',
+          'Synagogues, fishing boats, tax collectors: ordinary life into which the extraordinary walked.'
+        ],
+        verse: 'Mark 1:17 — "Follow me, and I will make you fishers of men."'
+      }
     },
     {
       id: 'wilderness', name: 'The Wilderness', sub: 'Bread from heaven', sky: [40, 30, 16],
@@ -285,7 +315,17 @@ window.ATLAS = {
         events: ['Manna every morning', 'Water from the rock', 'The ten words from Sinai', 'Forty years of wandering'],
         note: 'The road to Babylon sleeps until the ages stand in order.'
       },
-      next: 'exile'
+      next: 'exile',
+      thread: 'Out of Egypt — but Egypt not yet out of them. A generation will learn daily bread in the sand.',
+      intro: {
+        date: 'c. 1446–1406 BC',
+        facts: [
+          'Manna fell six mornings a week for forty years — thin flakes "like frost," tasting of honey wafers.',
+          'At Sinai the Ten Words are spoken amid thunder; a traveling tent — the tabernacle — becomes God’s address.',
+          'A journey of weeks becomes forty years: complaining, it turns out, is not a strategy.'
+        ],
+        verse: 'Deuteronomy 8:3 — "Man does not live by bread alone, but by every word that comes from the mouth of the LORD."'
+      }
     },
     {
       id: 'exile', name: 'Exile in Babylon', sub: 'By the rivers', sky: [24, 14, 44],
@@ -357,7 +397,17 @@ window.ATLAS = {
         events: ['Carried to Babylon', 'The writing on the wall', 'The lions’ den', 'Return under Cyrus'],
         note: 'The road to the upper room sleeps until the ages stand in order.'
       },
-      next: 'church'
+      next: 'church',
+      thread: 'The kingdom fell and the temple burned. Yet even in Babylon, lamps still burn — and a king will send them home.',
+      intro: {
+        date: '586–538 BC',
+        facts: [
+          'Babylon was the New York of the ancient world — the hanging gardens were counted among its wonders.',
+          'Daniel served pagan kings for 70 years without bending; his open window faced Jerusalem three times a day.',
+          'In 538 BC Cyrus of Persia let the exiles return — his decree is confirmed by archaeology’s Cyrus Cylinder.'
+        ],
+        verse: 'Jeremiah 29:11 — "For I know the plans I have for you... plans to prosper you and not to harm you, plans to give you hope and a future."'
+      }
     },
     {
       id: 'church', name: 'The Early Church', sub: 'To the ends of the earth', sky: [52, 28, 58],
@@ -427,7 +477,17 @@ window.ATLAS = {
         events: ['The upper room', 'Wind and fire', 'Three thousand believe', 'To the ends of the earth'],
         note: 'The final seal. Order the ages to witness the dawn.'
       },
-      next: null
+      next: null,
+      thread: 'Cross, tomb, upper room. The story that began in a garden has grown to the ends of the earth — and it is still being written.',
+      intro: {
+        date: 'AD 30 and onward',
+        facts: [
+          'At Pentecost, wind and fire fall on 120 believers; Peter preaches once and 3,000 are baptized — in a single day.',
+          'The first Christians share meals "with glad and generous hearts" (Acts 2:46) — the church begins at a table.',
+          'Acts 1:8 gives the whole plot: Jerusalem, Judea, Samaria, "to the end of the earth." Chapter 29 is being written now.'
+        ],
+        verse: 'Acts 1:8 — "You will be my witnesses in Jerusalem and in all Judea and Samaria, and to the end of the earth."'
+      }
     }
   ]
 };

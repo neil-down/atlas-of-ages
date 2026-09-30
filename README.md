@@ -10,7 +10,15 @@ and unseal each era by ordering its events on the timeline.
 
 - `npm run serve` → http://localhost:8124 (static files, no build step)
 - Move: **WASD / arrows**, click/tap to walk there, touch joystick on mobile
-- Interact: **E** (talk, gather, unseal portals) · Journal/codex: **J** · Sound: **M**
+- Interact: **E** (talk, gather, strike, unseal) — a prompt always tells you what E will do
+- Follow the **golden arrow**: it points at your live objective (person, relic, shadow, portal)
+- Journal/codex/story-threads: **J** · Sound: **M**
+
+## Never lost
+
+- First entry to each age opens a **foundations briefing**: date, three verified facts, a key verse
+- The **Threads** tab shows how the six ages connect into one story
+- Quests always name who/where; the tracker prefers business in your current age
 
 ## Design (from research)
 
